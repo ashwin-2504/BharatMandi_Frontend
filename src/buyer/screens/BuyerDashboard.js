@@ -1,17 +1,64 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../../shared/theme/theme";
 import StatsCard from "../../shared/components/StatsCard";
 import { Feather } from "@expo/vector-icons";
+import apiService from "../../shared/services/apiService";
 
 const BuyerDashboard = ({ navigation }) => {
+  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState({
+    purchases: "0",
+    orders: "0",
+    spent: "₹0",
+    wishlist: "0",
+  });
+  const [recentOrders, setRecentOrders] = useState([]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      // In a real scenario, we might have a dedicated dashboard endpoint
+      // For now, we'll simulate fetching or just use health check to verify connection
+      const health = await apiService.checkHealth();
+      console.log("Backend Health:", health);
+      
+      // Simulate fetching stats from backend if endpoints existed
+      // Since specific dashboard stats endpoints aren't in the backend routes yet,
+      // we keep them as 0 or default for now until further backend updates.
+    } catch (error) {
+      console.error("Failed to fetch dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = async () => {
+    try {
+      setLoading(true);
+      const results = await apiService.search("agricultural products");
+      console.log("Search Results:", results);
+      Alert.alert("Search", "Product search triggered successfully!");
+    } catch (error) {
+      Alert.alert("Error", "Failed to connect to backend for search.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -26,6 +73,12 @@ const BuyerDashboard = ({ navigation }) => {
           <Feather name="log-out" size={20} color={COLORS.textSecondary} />
         </TouchableOpacity>
       </View>
+
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      )}
 
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
@@ -44,10 +97,10 @@ const BuyerDashboard = ({ navigation }) => {
         </View>
 
         <View style={styles.statsGrid}>
-          <StatsCard title="Total Purchases" value="0" icon="shopping-bag" />
-          <StatsCard title="Active Orders" value="0" icon="truck" />
-          <StatsCard title="Total Spent" value="₹0" icon="credit-card" />
-          <StatsCard title="Wishlist Items" value="0" icon="heart" />
+          <StatsCard title="Total Purchases" value={stats.purchases} icon="shopping-bag" />
+          <StatsCard title="Active Orders" value={stats.orders} icon="truck" />
+          <StatsCard title="Total Spent" value={stats.spent} icon="credit-card" />
+          <StatsCard title="Wishlist Items" value={stats.wishlist} icon="heart" />
         </View>
 
         <View style={styles.sectionHeader}>
@@ -55,7 +108,10 @@ const BuyerDashboard = ({ navigation }) => {
             <Feather name="award" size={18} color={COLORS.primary} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>Recommended for You</Text>
           </View>
-          <TouchableOpacity style={styles.addButton}>
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={handleSearch}
+          >
             <Feather name="search" size={16} color={COLORS.white} style={{ marginRight: 4 }} />
             <Text style={styles.addButtonText}>Browse All</Text>
           </TouchableOpacity>
@@ -120,6 +176,13 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: SPACING.lg,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    zIndex: 1000,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   welcomeSection: {
     marginBottom: SPACING.lg,

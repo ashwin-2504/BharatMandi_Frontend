@@ -1,3 +1,6 @@
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../theme/theme";
 import { Feather } from "@expo/vector-icons";
 
 const StatsCard = ({ title, value, icon }) => {
