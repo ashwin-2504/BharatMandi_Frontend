@@ -26,14 +26,14 @@ const apiService = {
   },
 
   /**
-   * Search for products
+   * Initiate an ONDC search flow
    */
-  async search(query) {
+  async search(sessionId, flowId) {
     try {
       const response = await fetch(`${BASE_URL}/api/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ sessionId, flowId }),
       });
       return await response.json();
     } catch (error) {
@@ -45,12 +45,12 @@ const apiService = {
   /**
    * Select a product/item
    */
-  async select(itemId) {
+  async select(transactionId, inputs) {
     try {
       const response = await fetch(`${BASE_URL}/api/select`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemId }),
+        body: JSON.stringify({ transactionId, inputs }),
       });
       return await response.json();
     } catch (error) {
@@ -62,12 +62,12 @@ const apiService = {
   /**
    * Initialize a transaction (order)
    */
-  async init(details) {
+  async init(transactionId, inputs) {
     try {
       const response = await fetch(`${BASE_URL}/api/init`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(details),
+        body: JSON.stringify({ transactionId, inputs }),
       });
       return await response.json();
     } catch (error) {
@@ -79,12 +79,12 @@ const apiService = {
   /**
    * Confirm an order
    */
-  async confirm(transactionId) {
+  async confirm(transactionId, inputs) {
     try {
       const response = await fetch(`${BASE_URL}/api/confirm`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transactionId }),
+        body: JSON.stringify({ transactionId, inputs }),
       });
       return await response.json();
     } catch (error) {
