@@ -148,6 +148,32 @@ const apiService = {
       throw error;
     }
   },
+
+  /**
+   * Get orders for a specific seller
+   */
+  async getSellerOrders(sellerId) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/orders/seller/${sellerId}`);
+      return await response.json();
+    } catch (error) {
+      console.error("API Error (getSellerOrders):", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get statistics for a specific seller
+   */
+  async getSellerStats(sellerId) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/stats/seller/${sellerId}`);
+      return await response.json();
+    } catch (error) {
+      console.error("API Error (getSellerStats):", error);
+      throw error;
+    }
+  },
 };
 
 export default apiService;

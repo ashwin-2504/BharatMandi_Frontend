@@ -14,6 +14,8 @@ import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../../shared/theme/them
 import StatsCard from "../../shared/components/StatsCard";
 import { Feather } from "@expo/vector-icons";
 import apiService from "../../shared/services/apiService";
+import ProductItem from "../components/ProductItem";
+import OrderItem from "../components/OrderItem";
 
 const SellerDashboard = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
@@ -23,6 +25,8 @@ const SellerDashboard = ({ navigation }) => {
     revenue: "₹0",
     pending: "0",
   });
+  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -33,15 +37,24 @@ const SellerDashboard = ({ navigation }) => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      // For mock purposes, using 'seller_123'
-      const products = await apiService.getSellerProducts("seller_123");
+      const sellerId = "seller_123"; // Using mock ID
+      
+      // Fetch stats, products, and orders in parallel
+      const [statsData, productsData, ordersData] = await Promise.all([
+        apiService.getSellerStats(sellerId),
+        apiService.getSellerProducts(sellerId),
+        apiService.getSellerOrders(sellerId)
+      ]);
       
       setStats({
-        products: products.length.toString(),
-        orders: "0",
-        revenue: "₹0",
-        pending: "0",
+        products: statsData.productsCount.toString(),
+        orders: statsData.ordersCount.toString(),
+        revenue: `₹${statsData.revenue}`,
+        pending: statsData.pendingOrdersCount.toString(),
       });
+      
+      setProducts(productsData);
+      setOrders(ordersData);
     } catch (error) {
       console.error("Failed to fetch seller dashboard data:", error);
     } finally {
@@ -111,30 +124,50 @@ const SellerDashboard = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {loading ? (
+        {loading && products.length === 0 ? (
           <ActivityIndicator size="small" color={COLORS.primary} style={{ marginVertical: SPACING.md }} />
-        ) : stats.products === "0" ? (
+        ) : products.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>No products yet. Add your first product!</Text>
           </View>
         ) : (
           <View style={styles.productList}>
-            {/* List rendering logic would go here, for now just a simple placeholder to show we have products */}
-            <Text style={styles.productCountText}>Currently showing {stats.products} products.</Text>
-            {/* In a real implementation, we'd map over the products array */}
+            {products.slice(0, 5).map(product => (
+              <ProductItem key={product.id} product={product} />
+            ))}
+            {products.length > 5 && (
+              <TouchableOpacity style={styles.viewMoreButton}>
+                <Text style={styles.viewMoreText}>View All Products</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
         <View style={styles.sectionHeader}>
           <View style={styles.titleWithIcon}>
             <Feather name="list" size={18} color={COLORS.primary} style={styles.sectionIcon} />
-            <Text style={styles.sectionTitle}>Recent Orders</Text>
+            <Text style={styles.sectionTitle}>Recent Orders ({stats.orders})</Text>
           </View>
         </View>
 
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>No orders yet</Text>
-        </View>
+        {loading && orders.length === 0 ? (
+          <ActivityIndicator size="small" color={COLORS.primary} style={{ marginVertical: SPACING.md }} />
+        ) : orders.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>No orders yet</Text>
+          </View>
+        ) : (
+          <View style={styles.orderList}>
+            {orders.slice(0, 5).map(order => (
+              <OrderItem key={order.id} order={order} />
+            ))}
+            {orders.length > 5 && (
+              <TouchableOpacity style={styles.viewMoreButton}>
+                <Text style={styles.viewMoreText}>View All Orders</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -269,17 +302,28 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   productList: {
+    marginBottom: SPACING.md,
+  },
+  orderList: {
+    marginBottom: SPACING.md,
+  },
+  viewMoreButton: {
+    alignItems: 'center',
+    paddingVertical: SPACING.sm,
     backgroundColor: COLORS.white,
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: BORDER_RADIUS.md,
     borderWidth: 1,
-    borderColor: COLORS.border,
-    marginBottom: SPACING.lg,
+    borderColor: COLORS.primary,
+    marginTop: -SPACING.xs,
+    marginBottom: SPACING.md,
+  },
+  viewMoreText: {
+    color: COLORS.primary,
+    fontSize: 14,
+    fontWeight: '700',
   },
   productCountText: {
-    color: COLORS.textPrimary,
-    fontSize: 14,
-    fontWeight: "600",
+    display: 'none',
   },
 });
 
