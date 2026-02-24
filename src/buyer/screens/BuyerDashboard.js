@@ -1,19 +1,12 @@
 import React, { useState, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../../shared/theme/theme";
 import StatsCard from "../../shared/components/StatsCard";
 import { Feather } from "@expo/vector-icons";
 import OrderItem from "../../seller/components/OrderItem";
+import apiService from "../../shared/services/apiService";
 
 const BuyerDashboard = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
