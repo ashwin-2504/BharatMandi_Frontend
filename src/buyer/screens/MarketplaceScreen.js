@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../../shared/theme/theme";
 import apiService from "../../shared/services/apiService";
-import ProductItem from "../components/ProductItem"; // Reusing the ProductItem component
+import ProductItem from "../../seller/components/ProductItem"; // Reusing the ProductItem component
 
 const MarketplaceScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
