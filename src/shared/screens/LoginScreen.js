@@ -15,13 +15,15 @@ import RoleSelector from "../components/RoleSelector";
 
 const LoginScreen = ({ navigation }) => {
   const [role, setRole] = useState("Farmer");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
   const handleLogin = () => {
-    // Navigate to Dashboard
-    console.log("Logging in as", role);
-    navigation.navigate("Dashboard"); 
+    // Navigate to Dashboard with selected role
+    console.log("Entering dashboard as", role);
+    if (role === "Farmer") {
+      navigation.navigate("SellerDashboard");
+    } else {
+      navigation.navigate("BuyerDashboard");
+    }
   };
 
   return (
@@ -40,41 +42,18 @@ const LoginScreen = ({ navigation }) => {
           </View>
 
           <View style={[styles.card, SHADOWS.medium]}>
-            <Text style={styles.cardTitle}>Login to your account</Text>
-            <Text style={styles.instruction}>Enter your credentials to continue</Text>
+            <Text style={styles.cardTitle}>View Dashboards</Text>
+            <Text style={styles.instruction}>
+              Select a user type to continue
+            </Text>
 
             <RoleSelector selectedRole={role} onRoleChange={setRole} />
 
-            <CustomInput 
-              label="Email" 
-              placeholder="your@email.com" 
-              keyboardType="email-address"
-              value={email}
-              onChangeText={setEmail}
-            />
-            <CustomInput 
-              label="Password" 
-              placeholder="........" 
-              secureTextEntry 
-              value={password}
-              onChangeText={setPassword}
-            />
-
             <PrimaryButton
-              title="Login"
+              title="Enter Dashboard"
               onPress={handleLogin}
               style={styles.button}
             />
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Don't have an account? </Text>
-              <Text 
-                style={styles.link} 
-                onPress={() => navigation.navigate("Register")}
-              >
-                Register
-              </Text>
-            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
