@@ -2,6 +2,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from '../screens/LoginScreen';
 import SellerDashboard from '../../seller/screens/SellerDashboard';
+import AddProductScreen from '../../seller/screens/AddProductScreen';
 import BuyerDashboard from '../../buyer/screens/BuyerDashboard';
 
 const Stack = createStackNavigator();
@@ -16,6 +17,7 @@ export const AppNavigator = () => {
     >
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="SellerDashboard" component={SellerDashboard} />
+      <Stack.Screen name="AddProduct" component={AddProductScreen} />
       <Stack.Screen name="BuyerDashboard" component={BuyerDashboard} />
     </Stack.Navigator>
   );
