@@ -1,24 +1,42 @@
+import React, { useState } from "react";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, View, Button, Alert } from "react-native";
+import LoginScreen from "./src/screens/LoginScreen";
+import RegisterScreen from "./src/screens/RegisterScreen";
 
 export default function App() {
-  const handlePress = () => {
-    Alert.alert("Success", "Expo Go is working correctly!");
+  const [screen, setScreen] = useState("login");
+  const [role, setRole] = useState("Farmer");
+
+  const handleContinue = () => {
+    setScreen("register");
+  };
+
+  const handleRegister = () => {
+    // In a real app, this would handle account creation logic
+    console.log("Registering as", role);
+  };
+
+  const handleBackToLogin = () => {
+    setScreen("login");
   };
 
   return (
-    <View style={styles.container}>
-      <Button title="Click me" onPress={handlePress} />
-      <StatusBar style="auto" />
-    </View>
+    <>
+      <StatusBar style="dark" />
+      {screen === "login" ? (
+        <LoginScreen
+          role={role}
+          setRole={setRole}
+          onContinue={handleContinue}
+        />
+      ) : (
+        <RegisterScreen
+          role={role}
+          setRole={setRole}
+          onRegister={handleRegister}
+          onBackToLogin={handleBackToLogin}
+        />
+      )}
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
