@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -12,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../../shared/theme/theme";
 import StatsCard from "../../shared/components/StatsCard";
 import { Feather } from "@expo/vector-icons";
-import apiService from "../../shared/services/apiService";
+import OrderItem from "../../seller/components/OrderItem";
 
 const BuyerDashboard = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
@@ -24,21 +25,29 @@ const BuyerDashboard = ({ navigation }) => {
   });
   const [recentOrders, setRecentOrders] = useState([]);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchDashboardData();
+    }, [])
+  );
 
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      // In a real scenario, we might have a dedicated dashboard endpoint
-      // For now, we'll simulate fetching or just use health check to verify connection
-      const health = await apiService.checkHealth();
-      console.log("Backend Health:", health);
+      // Mock buyer ID for stats
+      const buyerId = "seller_123"; // Reusing for now to show data
+      const [statsData, ordersData] = await Promise.all([
+        apiService.getSellerStats(buyerId),
+        apiService.getSellerOrders(buyerId)
+      ]);
       
-      // Simulate fetching stats from backend if endpoints existed
-      // Since specific dashboard stats endpoints aren't in the backend routes yet,
-      // we keep them as 0 or default for now until further backend updates.
+      setStats({
+        purchases: statsData.ordersCount.toString(),
+        orders: statsData.pendingOrdersCount.toString(),
+        spent: `₹${statsData.revenue}`,
+        wishlist: "0",
+      });
+      setRecentOrders(ordersData);
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
     } finally {
@@ -46,17 +55,8 @@ const BuyerDashboard = ({ navigation }) => {
     }
   };
 
-  const handleSearch = async () => {
-    try {
-      setLoading(true);
-      const results = await apiService.search("agricultural products");
-      console.log("Search Results:", results);
-      Alert.alert("Search", "Product search triggered successfully!");
-    } catch (error) {
-      Alert.alert("Error", "Failed to connect to backend for search.");
-    } finally {
-      setLoading(false);
-    }
+  const handleSearch = () => {
+    navigation.navigate("Marketplace");
   };
 
   return (
@@ -106,31 +106,39 @@ const BuyerDashboard = ({ navigation }) => {
         <View style={styles.sectionHeader}>
           <View style={styles.titleWithIcon}>
             <Feather name="award" size={18} color={COLORS.primary} style={styles.sectionIcon} />
-            <Text style={styles.sectionTitle}>Recommended for You</Text>
+            <Text style={styles.sectionTitle}>Marketplace</Text>
           </View>
           <TouchableOpacity 
             style={styles.addButton}
             onPress={handleSearch}
           >
             <Feather name="search" size={16} color={COLORS.white} style={{ marginRight: 4 }} />
-            <Text style={styles.addButtonText}>Browse All</Text>
+            <Text style={styles.addButtonText}>Explore All</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>Looking for products? Browse the marketplace!</Text>
+          <Text style={styles.emptyStateText}>Discover fresh produce directly from farmers!</Text>
         </View>
 
         <View style={styles.sectionHeader}>
           <View style={styles.titleWithIcon}>
             <Feather name="shopping-bag" size={18} color={COLORS.primary} style={styles.sectionIcon} />
-            <Text style={styles.sectionTitle}>My Recent Orders</Text>
+            <Text style={styles.sectionTitle}>My Recent Orders ({recentOrders.length})</Text>
           </View>
         </View>
 
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>No orders yet</Text>
-        </View>
+        {recentOrders.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>No orders yet</Text>
+          </View>
+        ) : (
+          <View style={styles.orderList}>
+            {recentOrders.slice(0, 5).map(order => (
+              <OrderItem key={order.id} order={order} />
+            ))}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

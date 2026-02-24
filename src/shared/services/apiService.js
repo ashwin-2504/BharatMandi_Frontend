@@ -137,6 +137,19 @@ const apiService = {
   },
 
   /**
+   * Search for products
+   */
+  async searchProducts(query) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/products/search?q=${encodeURIComponent(query)}`);
+      return await response.json();
+    } catch (error) {
+      console.error("API Error (searchProducts):", error);
+      throw error;
+    }
+  },
+
+  /**
    * Get all products
    */
   async getAllProducts() {
