@@ -1,20 +1,38 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../theme/theme";
 import PrimaryButton from "../components/PrimaryButton";
 import CustomInput from "../components/CustomInput";
 import RoleSelector from "../components/RoleSelector";
 
-const RegisterScreen = ({ role, setRole, onRegister, onBackToLogin }) => {
+const RegisterScreen = ({ navigation }) => {
+  const [role, setRole] = useState("Farmer");
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    address: "",
+    password: "",
+  });
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleRegister = () => {
+    console.log("Registering as", role, formData);
+    navigation.navigate("Dashboard");
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -31,21 +49,50 @@ const RegisterScreen = ({ role, setRole, onRegister, onBackToLogin }) => {
 
             <RoleSelector selectedRole={role} onRoleChange={setRole} />
 
-            <CustomInput label="Full Name" placeholder="Enter your full name" />
-            <CustomInput label="Email" placeholder="Enter your email" keyboardType="email-address" />
-            <CustomInput label="Phone" placeholder="Enter your phone number" keyboardType="phone-pad" />
-            <CustomInput label="Address" placeholder="Enter your full address" multiline />
-            <CustomInput label="Password" placeholder="Create a password" secureTextEntry />
+            <CustomInput 
+              label="Full Name" 
+              placeholder="Enter your full name" 
+              value={formData.fullName}
+              onChangeText={(text) => handleInputChange("fullName", text)}
+            />
+            <CustomInput 
+              label="Email" 
+              placeholder="your@email.com" 
+              keyboardType="email-address" 
+              value={formData.email}
+              onChangeText={(text) => handleInputChange("email", text)}
+            />
+            <CustomInput 
+              label="Phone" 
+              placeholder="9876543210" 
+              keyboardType="phone-pad" 
+              value={formData.phone}
+              onChangeText={(text) => handleInputChange("phone", text)}
+            />
+            <CustomInput 
+              label="Address" 
+              placeholder="Your location" 
+              multiline 
+              value={formData.address}
+              onChangeText={(text) => handleInputChange("address", text)}
+            />
+            <CustomInput 
+              label="Password" 
+              placeholder="........" 
+              secureTextEntry 
+              value={formData.password}
+              onChangeText={(text) => handleInputChange("password", text)}
+            />
 
             <PrimaryButton
               title="Create Account"
-              onPress={onRegister}
+              onPress={handleRegister}
               style={styles.button}
             />
 
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={onBackToLogin}
+              onPress={() => navigation.navigate("Login")}
               style={styles.linkButton}
             >
               <Text style={styles.linkText}>
@@ -71,6 +118,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "center",
     padding: SPACING.md,
+    paddingVertical: SPACING.lg,
   },
   card: {
     backgroundColor: COLORS.white,

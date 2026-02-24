@@ -1,19 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../theme/theme";
 import PrimaryButton from "../components/PrimaryButton";
+import CustomInput from "../components/CustomInput";
 import RoleSelector from "../components/RoleSelector";
 
-const LoginScreen = ({ role, setRole, onContinue }) => {
+const LoginScreen = ({ navigation }) => {
+  const [role, setRole] = useState("Farmer");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = () => {
+    // Navigate to Dashboard
+    console.log("Logging in as", role);
+    navigation.navigate("Dashboard"); 
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -31,15 +41,40 @@ const LoginScreen = ({ role, setRole, onContinue }) => {
 
           <View style={[styles.card, SHADOWS.medium]}>
             <Text style={styles.cardTitle}>Login to your account</Text>
-            <Text style={styles.instruction}>Select your role to continue</Text>
+            <Text style={styles.instruction}>Enter your credentials to continue</Text>
 
             <RoleSelector selectedRole={role} onRoleChange={setRole} />
 
+            <CustomInput 
+              label="Email" 
+              placeholder="your@email.com" 
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+            />
+            <CustomInput 
+              label="Password" 
+              placeholder="........" 
+              secureTextEntry 
+              value={password}
+              onChangeText={setPassword}
+            />
+
             <PrimaryButton
-              title="Continue"
-              onPress={onContinue}
+              title="Login"
+              onPress={handleLogin}
               style={styles.button}
             />
+
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>Don't have an account? </Text>
+              <Text 
+                style={styles.link} 
+                onPress={() => navigation.navigate("Register")}
+              >
+                Register
+              </Text>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -62,10 +97,10 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: "center",
-    marginBottom: SPACING.xl * 1.5,
+    marginBottom: SPACING.xl,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "800",
     color: COLORS.primary,
     textAlign: "center",
@@ -93,9 +128,24 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     textAlign: "center",
     marginTop: SPACING.xs,
+    marginBottom: SPACING.md,
   },
   button: {
     marginTop: SPACING.md,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: SPACING.lg,
+  },
+  footerText: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+  },
+  link: {
+    color: COLORS.primary,
+    fontWeight: "700",
+    fontSize: 14,
   },
 });
 
