@@ -9,12 +9,8 @@ const CartScreen = ({ navigation }) => {
   const { cartItems, removeFromCart, updateQuantity, cartTotal, clearCart } = useCart();
 
   const handleCheckout = () => {
-    // Navigate to Checkout, passing the items and total
     if (cartItems.length > 0) {
-      // In a real app we might pass multiple items,
-      // here we simulate by passing the first item just to keep the existing checkout flow somewhat compatible
-      // Note: The prompt asks for quantity adjustments which we will build into the CartScreen before passing
-      navigation.navigate("Checkout", { product: { ...cartItems[0], checkoutTotal: cartTotal, isCartCheckout: true } });
+      navigation.navigate("Checkout", { items: cartItems, cartTotal });
     }
   };
 

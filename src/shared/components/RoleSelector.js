@@ -1,33 +1,43 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from "../theme/theme";
+import { Feather } from "@expo/vector-icons";
+import { COLORS, SPACING, BORDER_RADIUS, SHADOWS, FONT_SIZES, FONT_WEIGHTS } from "../theme/theme";
+
+const ROLES = [
+  { key: "Farmer", icon: "sun", subtitle: "Sell your produce", color: COLORS.primary },
+  { key: "Buyer", icon: "shopping-bag", subtitle: "Shop fresh goods", color: COLORS.info },
+];
 
 const RoleSelector = ({ selectedRole, onRoleChange }) => {
-  const roles = ["Farmer", "Buyer"];
-
   return (
     <View style={styles.container}>
-      {roles.map((role) => {
-        const isSelected = selectedRole === role;
+      {ROLES.map((role) => {
+        const isSelected = selectedRole === role.key;
         return (
           <TouchableOpacity
-            key={role}
+            key={role.key}
             activeOpacity={0.7}
-            onPress={() => onRoleChange(role)}
+            onPress={() => onRoleChange(role.key)}
             style={[
               styles.roleBtn,
-              isSelected ? styles.selectedBtn : styles.unselectedBtn,
+              isSelected
+                ? [styles.selectedBtn, { borderColor: role.color, backgroundColor: role.color + "10" }]
+                : styles.unselectedBtn,
               isSelected && SHADOWS.light,
             ]}
           >
+            <View style={[styles.iconCircle, { backgroundColor: isSelected ? role.color + "20" : COLORS.background }]}>
+              <Feather name={role.icon} size={22} color={isSelected ? role.color : COLORS.textSecondary} />
+            </View>
             <Text
               style={[
                 styles.roleText,
-                isSelected ? styles.selectedText : styles.unselectedText,
+                isSelected ? { color: role.color } : styles.unselectedText,
               ]}
             >
-              {role}
+              {role.key}
             </Text>
+            <Text style={styles.subtitle}>{role.subtitle}</Text>
           </TouchableOpacity>
         );
       })}
@@ -44,28 +54,37 @@ const styles = StyleSheet.create({
   },
   roleBtn: {
     flex: 0.48,
-    paddingVertical: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
+    paddingVertical: SPACING.lg,
+    borderRadius: BORDER_RADIUS.lg,
     alignItems: "center",
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
   selectedBtn: {
-    backgroundColor: COLORS.primaryLight,
     borderColor: COLORS.primary,
   },
   unselectedBtn: {
     backgroundColor: COLORS.white,
     borderColor: COLORS.border,
   },
-  roleText: {
-    fontSize: 16,
-    fontWeight: "700",
+  iconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: SPACING.sm,
   },
-  selectedText: {
-    color: COLORS.primary,
+  roleText: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: FONT_WEIGHTS.bold,
   },
   unselectedText: {
     color: COLORS.textSecondary,
+  },
+  subtitle: {
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.textSecondary,
+    marginTop: 2,
   },
 });
 

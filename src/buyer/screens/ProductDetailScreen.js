@@ -1,8 +1,8 @@
-import React from "react";
-import { StyleSheet, View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, View, Text, Image, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../../shared/theme/theme";
+import { COLORS, SPACING, SHADOWS, BORDER_RADIUS, FONT_SIZES, FONT_WEIGHTS } from "../../shared/theme/theme";
 import { useCart } from "../../shared/context/CartContext";
 
 const ProductDetailScreen = ({ route, navigation }) => {
@@ -16,6 +16,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
 
   const handleAddToCart = () => {
     addToCart(product);
+    Alert.alert("Added to Cart", `${product.name} has been added to your cart.`);
   };
 
   return (
@@ -65,15 +66,15 @@ const ProductDetailScreen = ({ route, navigation }) => {
               <View style={styles.infoTextContainer}>
                 <Text style={styles.infoLabel}>Stock Status</Text>
                 <Text style={[styles.infoValue, product.stock_quantity < 10 && styles.lowStock]}>
-                  {product.stock_quantity} available
+                  {product.stock_quantity > 0 ? `${product.stock_quantity} available` : "Out of Stock"}
                 </Text>
               </View>
             </View>
             <View style={styles.infoItem}>
               <Feather name="user" size={18} color={COLORS.primary} />
               <View style={styles.infoTextContainer}>
-                <Text style={styles.infoLabel}>Seller ID</Text>
-                <Text style={styles.infoValue}>{product.seller_id}</Text>
+                <Text style={styles.infoLabel}>Seller</Text>
+                <Text style={styles.infoValue}>{product.seller_id?.substring(0, 8)}…</Text>
               </View>
             </View>
           </View>
@@ -88,12 +89,13 @@ const ProductDetailScreen = ({ route, navigation }) => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.wishlistButton} onPress={handleAddToCart}>
-          <Feather name="shopping-cart" size={24} color={COLORS.primary} />
+        <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart} activeOpacity={0.7}>
+          <Feather name="shopping-cart" size={18} color={COLORS.primary} />
+          <Text style={styles.addToCartText}>Add to Cart</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.buyButton} onPress={handleBuyNow}>
+        <TouchableOpacity style={styles.buyButton} onPress={handleBuyNow} activeOpacity={0.8}>
           <Text style={styles.buyButtonText}>Buy Now</Text>
-          <Feather name="chevron-right" size={20} color={COLORS.white} />
+          <Feather name="arrow-right" size={18} color={COLORS.white} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -230,15 +232,23 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.border,
     alignItems: "center",
   },
-  wishlistButton: {
-    width: 60,
+  addToCartButton: {
+    flex: 0.45,
     height: 50,
     borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: COLORS.primary,
+    backgroundColor: COLORS.white,
+    flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     marginRight: SPACING.md,
+  },
+  addToCartText: {
+    color: COLORS.primary,
+    fontSize: FONT_SIZES.sm,
+    fontWeight: FONT_WEIGHTS.bold,
+    marginLeft: SPACING.sm,
   },
   badge: {
     position: "absolute",
@@ -256,11 +266,11 @@ const styles = StyleSheet.create({
   badgeText: {
     color: COLORS.white,
     fontSize: 10,
-    fontWeight: "bold",
+    fontWeight: FONT_WEIGHTS.bold,
     paddingHorizontal: 4,
   },
   buyButton: {
-    flex: 1,
+    flex: 0.55,
     height: 50,
     backgroundColor: COLORS.primary,
     borderRadius: BORDER_RADIUS.md,
@@ -271,8 +281,8 @@ const styles = StyleSheet.create({
   },
   buyButtonText: {
     color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: FONT_SIZES.md,
+    fontWeight: FONT_WEIGHTS.bold,
     marginRight: 8,
   },
 });

@@ -1,17 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from '../../shared/theme/theme';
+import { COLORS, SPACING, SHADOWS, BORDER_RADIUS, STATUS_COLORS, FONT_SIZES, FONT_WEIGHTS } from '../../shared/theme/theme';
 
 const OrderItem = ({ order, onPress }) => {
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'DELIVERED': return '#4CAF50';
-      case 'PENDING': return '#FF9800';
-      case 'SHIPPED': return '#2196F3';
-      case 'CANCELLED': return '#F44336';
-      default: return COLORS.textSecondary;
-    }
+    const sc = STATUS_COLORS[status];
+    return sc ? sc.text : COLORS.textSecondary;
+  };
+
+  const getStatusBg = (status) => {
+    const sc = STATUS_COLORS[status];
+    return sc ? sc.bg : COLORS.background;
   };
 
   return (
@@ -21,7 +21,7 @@ const OrderItem = ({ order, onPress }) => {
           <Feather name="hash" size={14} color={COLORS.textSecondary} />
           <Text style={styles.orderId}>{order.id.substring(0, 8)}...</Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) + '15' }]}>
+        <View style={[styles.statusBadge, { backgroundColor: getStatusBg(order.status) }]}>
           <Text style={[styles.statusText, { color: getStatusColor(order.status) }]}>{order.status}</Text>
         </View>
       </View>

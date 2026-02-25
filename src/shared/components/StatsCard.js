@@ -1,13 +1,20 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../theme/theme";
+import { COLORS, SPACING, SHADOWS, BORDER_RADIUS, FONT_SIZES, FONT_WEIGHTS } from "../theme/theme";
 import { Feather } from "@expo/vector-icons";
 
-const StatsCard = ({ title, value, icon }) => {
+/**
+ * StatsCard with optional color prop for icon background differentiation.
+ * color: { bg: '#E8F5E9', icon: '#2E7D32' }  (defaults to green)
+ */
+const StatsCard = ({ title, value, icon, color }) => {
+  const iconBg = color?.bg || COLORS.primaryLight;
+  const iconColor = color?.icon || COLORS.primary;
+
   return (
     <View style={[styles.card, SHADOWS.light]}>
-      <View style={styles.iconContainer}>
-        <Feather name={icon} size={20} color={COLORS.primary} />
+      <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
+        <Feather name={icon} size={20} color={iconColor} />
       </View>
       <View style={styles.content}>
         <Text style={styles.value}>{value}</Text>
@@ -31,22 +38,21 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginRight: SPACING.sm,
-    backgroundColor: COLORS.primaryLight,
-    padding: 8,
-    borderRadius: 8,
+    padding: 10,
+    borderRadius: BORDER_RADIUS.sm,
   },
   content: {
     flex: 1,
   },
   value: {
-    fontSize: 18,
-    fontWeight: "800",
+    fontSize: FONT_SIZES.lg,
+    fontWeight: FONT_WEIGHTS.heavy,
     color: COLORS.textPrimary,
   },
   title: {
-    fontSize: 11,
+    fontSize: FONT_SIZES.xs,
     color: COLORS.textSecondary,
-    fontWeight: "600",
+    fontWeight: FONT_WEIGHTS.semibold,
     marginTop: 2,
   },
 });

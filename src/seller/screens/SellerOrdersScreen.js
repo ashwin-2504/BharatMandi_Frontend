@@ -6,8 +6,10 @@ import { COLORS, SPACING, SHADOWS } from "../../shared/theme/theme";
 import OrderItem from "../components/OrderItem";
 import apiService from "../../shared/services/apiService";
 import { useFocusEffect } from "@react-navigation/native";
+import { useAuth } from "../../shared/context/AuthContext";
 
 const SellerOrdersScreen = ({ navigation }) => {
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -20,7 +22,7 @@ const SellerOrdersScreen = ({ navigation }) => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const sellerId = "seller_123"; // Reusing mock ID
+      const sellerId = user?.id || "seller_123";
       const data = await apiService.getSellerOrders(sellerId);
       setOrders(data);
     } catch (error) {

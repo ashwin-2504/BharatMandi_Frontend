@@ -6,19 +6,21 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../theme/theme";
+import { Feather } from "@expo/vector-icons";
+import { COLORS, SPACING, SHADOWS, BORDER_RADIUS, FONT_SIZES, FONT_WEIGHTS } from "../theme/theme";
 import PrimaryButton from "../components/PrimaryButton";
-import CustomInput from "../components/CustomInput";
 import RoleSelector from "../components/RoleSelector";
+import { useAuth } from "../context/AuthContext";
 
 const LoginScreen = ({ navigation }) => {
   const [role, setRole] = useState("Farmer");
+  const { login } = useAuth();
 
   const handleLogin = () => {
-    // Navigate to Dashboard with selected role
-    console.log("Entering dashboard as", role);
+    login(role);
     if (role === "Farmer") {
       navigation.reset({ index: 0, routes: [{ name: "SellerDashboard" }] });
     } else {
@@ -36,15 +38,20 @@ const LoginScreen = ({ navigation }) => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          {/* Branding */}
           <View style={styles.header}>
-            <Text style={styles.title}>Welcome to BharatMandi</Text>
+            <View style={styles.brandCircle}>
+              <Feather name="globe" size={36} color={COLORS.white} />
+            </View>
+            <Text style={styles.title}>BharatMandi</Text>
             <Text style={styles.subtitle}>Empowering India's Agriculture</Text>
           </View>
 
-          <View style={[styles.card, SHADOWS.medium]}>
-            <Text style={styles.cardTitle}>View Dashboards</Text>
+          {/* Login card */}
+          <View style={[styles.card, SHADOWS.strong]}>
+            <Text style={styles.cardTitle}>Get Started</Text>
             <Text style={styles.instruction}>
-              Select a user type to continue
+              Choose your role to continue
             </Text>
 
             <RoleSelector selectedRole={role} onRoleChange={setRole} />
@@ -52,8 +59,15 @@ const LoginScreen = ({ navigation }) => {
             <PrimaryButton
               title="Enter Dashboard"
               onPress={handleLogin}
-              style={styles.button}
+              icon={<Feather name="arrow-right" size={18} color={COLORS.white} />}
             />
+
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>New here? </Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+                <Text style={styles.link}>Create Account</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -78,17 +92,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: SPACING.xl,
   },
+  brandCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: COLORS.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: SPACING.md,
+    ...SHADOWS.strong,
+  },
   title: {
-    fontSize: 28,
-    fontWeight: "800",
+    fontSize: FONT_SIZES.hero,
+    fontWeight: FONT_WEIGHTS.heavy,
     color: COLORS.primary,
     textAlign: "center",
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.md,
     color: COLORS.textSecondary,
     marginTop: SPACING.xs,
-    fontWeight: "500",
+    fontWeight: FONT_WEIGHTS.medium,
   },
   card: {
     backgroundColor: COLORS.white,
@@ -97,20 +122,16 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   cardTitle: {
-    fontSize: 22,
-    fontWeight: "700",
+    fontSize: FONT_SIZES.xl,
+    fontWeight: FONT_WEIGHTS.bold,
     color: COLORS.textPrimary,
     textAlign: "center",
   },
   instruction: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.sm,
     color: COLORS.textSecondary,
     textAlign: "center",
     marginTop: SPACING.xs,
-    marginBottom: SPACING.md,
-  },
-  button: {
-    marginTop: SPACING.md,
   },
   footer: {
     flexDirection: "row",
@@ -119,13 +140,14 @@ const styles = StyleSheet.create({
   },
   footerText: {
     color: COLORS.textSecondary,
-    fontSize: 14,
+    fontSize: FONT_SIZES.sm,
   },
   link: {
     color: COLORS.primary,
-    fontWeight: "700",
-    fontSize: 14,
+    fontWeight: FONT_WEIGHTS.bold,
+    fontSize: FONT_SIZES.sm,
   },
 });
 
 export default LoginScreen;
+

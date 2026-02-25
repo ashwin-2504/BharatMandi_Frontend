@@ -6,8 +6,10 @@ import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../../shared/theme/them
 import ProductItem from "../components/ProductItem";
 import apiService from "../../shared/services/apiService";
 import { useFocusEffect } from "@react-navigation/native";
+import { useAuth } from "../../shared/context/AuthContext";
 
 const SellerProductsScreen = ({ navigation }) => {
+  const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -20,7 +22,7 @@ const SellerProductsScreen = ({ navigation }) => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const sellerId = "seller_123"; // Reusing mock ID
+      const sellerId = user?.id || "seller_123";
       const data = await apiService.getSellerProducts(sellerId);
       setProducts(data);
     } catch (error) {
@@ -62,7 +64,7 @@ const SellerProductsScreen = ({ navigation }) => {
           <ProductItem 
             product={item}
             onPress={() => {
-              // Future: Navigate to edit product
+              navigation.navigate("EditProduct", { product: item });
             }}
           />
         )}

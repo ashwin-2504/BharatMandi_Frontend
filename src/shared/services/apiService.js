@@ -295,6 +295,40 @@ const apiService = {
       throw error;
     }
   },
+
+  /**
+   * Update a product
+   */
+  async updateProduct(productId, productData) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/products/${productId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(productData),
+      });
+      return await _handleResponse(response, "updateProduct");
+    } catch (error) {
+      console.error("API Error (updateProduct):", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete a product
+   */
+  async deleteProduct(productId, sellerId) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/products/${productId}?seller_id=${sellerId}`, {
+        method: "DELETE",
+      });
+      return await _handleResponse(response, "deleteProduct");
+    } catch (error) {
+      console.error("API Error (deleteProduct):", error);
+      throw error;
+    }
+  },
 };
 
 export default apiService;

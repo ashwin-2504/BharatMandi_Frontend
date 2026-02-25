@@ -2,12 +2,27 @@ import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../../shared/theme/theme";
+import { COLORS, SPACING, SHADOWS, BORDER_RADIUS, FONT_SIZES, FONT_WEIGHTS } from "../../shared/theme/theme";
+import PrimaryButton from "../../shared/components/PrimaryButton";
 import apiService from "../../shared/services/apiService";
+import { useAuth } from "../../shared/context/AuthContext";
+import { useCart } from "../../shared/context/CartContext";
 
 const CheckoutScreen = ({ route, navigation }) => {
-  const { product: initialProduct } = route.params;
-  const [product, setProduct] = useState({ ...initialProduct, quantity: initialProduct.quantity || 1 });
+  const { user } = useAuth();
+  const { clearCart } = useCart();
+
+  // Support both old (single product) and new (multi-item) params
+  const routeItems = route.params?.items;
+  const routeProduct = route.params?.product;
+  const items = routeItems
+    ? routeItems
+    : routeProduct
+    ? [{ ...routeProduct, quantity: routeProduct.quantity || 1 }]
+    : [];
+
+  const totalAmount = route.params?.cartTotal
+    ?? items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   
   const [step, setStep] = useState(1); // 1: Select, 2: Init, 3: Confirm
   const [loading, setLoading] = useState(false);
@@ -16,9 +31,9 @@ const CheckoutScreen = ({ route, navigation }) => {
   const [flowId, setFlowId] = useState(null);
   const [flowReady, setFlowReady] = useState(false);
   const [shippingInfo, setShippingInfo] = useState({
-    name: "John Doe",
-    address: "123 Farmer St, Agriville",
-    phone: "9876543210",
+    name: "",
+    address: "",
+    phone: "",
   });
 
   // On mount: let the backend create a session & flow
@@ -46,7 +61,7 @@ const CheckoutScreen = ({ route, navigation }) => {
     return () => { cancelled = true; };
   }, []);
 
-  // Step 1: Select
+  // Step 1: Select (use first item as primary for ONDC flow)
   const handleSelect = async () => {
     if (!transactionId) {
       Alert.alert("Error", "Transaction not ready. Please wait or restart checkout.");
@@ -55,8 +70,8 @@ const CheckoutScreen = ({ route, navigation }) => {
     setLoading(true);
     try {
       await apiService.select(transactionId, { 
-        item_id: product.id,
-        quantity: product.quantity 
+        item_id: items[0]?.id,
+        quantity: items[0]?.quantity 
       });
       setStep(2);
     } catch (error) {
@@ -95,16 +110,17 @@ const CheckoutScreen = ({ route, navigation }) => {
     setLoading(true);
     try {
       const payload = {
-        customer_name: shippingInfo.name,
-        total_amount: product.price * product.quantity,
-        seller_id: product.seller_id,
-        buyer_id: "buyer_default",
-        items: [{ id: product.id, name: product.name, price: product.price, quantity: product.quantity }],
+        customer_name: shippingInfo.name || "Demo Buyer",
+        total_amount: totalAmount,
+        seller_id: items[0]?.seller_id || "unknown_seller",
+        buyer_id: user?.id || "buyer_default",
+        items: items.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity })),
         payment: { type: "COD", status: "PENDING" }
       };
       
       const result = await apiService.confirm(transactionId, payload);
       
+      clearCart();
       Alert.alert("Success", "Order placed successfully!", [
         { text: "OK", onPress: () => navigation.reset({
           index: 0,
@@ -160,38 +176,24 @@ const CheckoutScreen = ({ route, navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {step === 1 && (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Review Item</Text>
-            <View style={styles.itemRow}>
-              <View style={styles.itemImagePlaceholder}>
-                <Feather name="box" size={24} color={COLORS.textSecondary} />
-              </View>
-              <View style={{ flex: 1, marginLeft: SPACING.md }}>
-                <Text style={styles.itemName}>{product.name}</Text>
-                <Text style={styles.itemCategory}>{product.category}</Text>
-                <Text style={styles.itemPrice}>₹{product.price}</Text>
-
-                <View style={styles.quantityControls}>
-                  <TouchableOpacity 
-                    style={styles.controlBtn}
-                    onPress={() => setProduct({...product, quantity: Math.max(1, product.quantity - 1)})}
-                  >
-                    <Feather name="minus" size={16} color={COLORS.textPrimary} />
-                  </TouchableOpacity>
-                  <Text style={styles.quantityText}>{product.quantity}</Text>
-                  <TouchableOpacity 
-                    style={styles.controlBtn}
-                    onPress={() => setProduct({...product, quantity: product.quantity + 1})}
-                  >
-                    <Feather name="plus" size={16} color={COLORS.textPrimary} />
-                  </TouchableOpacity>
+            <Text style={styles.cardTitle}>Review Items ({items.length})</Text>
+            {items.map((item, index) => (
+              <View key={item.id || index} style={styles.itemRow}>
+                <View style={styles.itemImagePlaceholder}>
+                  <Feather name="box" size={24} color={COLORS.textSecondary} />
+                </View>
+                <View style={{ flex: 1, marginLeft: SPACING.md }}>
+                  <Text style={styles.itemName}>{item.name}</Text>
+                  <Text style={styles.itemCategory}>{item.category}</Text>
+                  <Text style={styles.itemPrice}>₹{item.price} × {item.quantity}</Text>
                 </View>
               </View>
-            </View>
+            ))}
             
             <View style={styles.summaryContainer}>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Subtotal</Text>
-                <Text style={styles.summaryValue}>₹{product.price * product.quantity}</Text>
+                <Text style={styles.summaryValue}>₹{totalAmount}</Text>
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Delivery</Text>
@@ -199,7 +201,7 @@ const CheckoutScreen = ({ route, navigation }) => {
               </View>
               <View style={[styles.summaryRow, styles.totalRow]}>
                 <Text style={styles.totalLabel}>Total</Text>
-                <Text style={styles.totalValue}>₹{product.price * product.quantity}</Text>
+                <Text style={styles.totalValue}>₹{totalAmount}</Text>
               </View>
             </View>
           </View>
@@ -214,6 +216,8 @@ const CheckoutScreen = ({ route, navigation }) => {
                 style={styles.input}
                 value={shippingInfo.name}
                 onChangeText={(text) => setShippingInfo({...shippingInfo, name: text})}
+                placeholder="Enter your name"
+                placeholderTextColor={COLORS.textSecondary}
               />
             </View>
             <View style={styles.inputGroup}>
@@ -223,6 +227,8 @@ const CheckoutScreen = ({ route, navigation }) => {
                 multiline
                 value={shippingInfo.address}
                 onChangeText={(text) => setShippingInfo({...shippingInfo, address: text})}
+                placeholder="Enter your address"
+                placeholderTextColor={COLORS.textSecondary}
               />
             </View>
             <View style={styles.inputGroup}>
@@ -232,6 +238,8 @@ const CheckoutScreen = ({ route, navigation }) => {
                 keyboardType="phone-pad"
                 value={shippingInfo.phone}
                 onChangeText={(text) => setShippingInfo({...shippingInfo, phone: text})}
+                placeholder="Enter your phone"
+                placeholderTextColor={COLORS.textSecondary}
               />
             </View>
           </View>
@@ -239,18 +247,28 @@ const CheckoutScreen = ({ route, navigation }) => {
 
         {step === 3 && (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Final Confirmation</Text>
+            <View style={{ alignItems: "center", marginBottom: SPACING.lg }}>
+              <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: COLORS.success + "20", justifyContent: "center", alignItems: "center", marginBottom: SPACING.sm }}>
+                <Feather name="check" size={32} color={COLORS.success} />
+              </View>
+              <Text style={styles.cardTitle}>Ready to Place Order</Text>
+              <Text style={{ textAlign: "center", color: COLORS.textSecondary, marginTop: 4 }}>Review your final details below.</Text>
+            </View>
             <View style={styles.confirmationRow}>
               <Text style={styles.confirmLabel}>Payment Method:</Text>
               <Text style={styles.confirmValue}>Cash on Delivery</Text>
             </View>
             <View style={styles.confirmationRow}>
               <Text style={styles.confirmLabel}>Total Amount:</Text>
-              <Text style={styles.confirmTotal}>₹{product.price * product.quantity}</Text>
+              <Text style={styles.confirmTotal}>₹{totalAmount}</Text>
             </View>
             <View style={styles.confirmationRow}>
               <Text style={styles.confirmLabel}>Delivery to:</Text>
-              <Text style={styles.confirmValue}>{shippingInfo.name}</Text>
+              <Text style={styles.confirmValue}>{shippingInfo.name || "Not provided"}</Text>
+            </View>
+            <View style={styles.confirmationRow}>
+              <Text style={styles.confirmLabel}>Items:</Text>
+              <Text style={styles.confirmValue}>{items.length} item(s)</Text>
             </View>
             <Text style={styles.warningText}>By clicking confirm, your order will be placed using ONDC protocol.</Text>
           </View>
@@ -258,22 +276,12 @@ const CheckoutScreen = ({ route, navigation }) => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity 
-          style={[styles.button, loading && styles.disabledButton]} 
+        <PrimaryButton
+          title={step === 3 ? "Place Order" : "Proceed"}
           onPress={step === 1 ? handleSelect : step === 2 ? handleInit : handleConfirm}
           disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color={COLORS.white} />
-          ) : (
-            <>
-              <Text style={styles.buttonText}>
-                {step === 3 ? "Place Order" : "Proceed"}
-              </Text>
-              <Feather name="arrow-right" size={20} color={COLORS.white} />
-            </>
-          )}
-        </TouchableOpacity>
+          icon={!loading ? <Feather name="arrow-right" size={20} color={COLORS.white} /> : <ActivityIndicator color={COLORS.white} />}
+        />
       </View>
       
       {loading && (

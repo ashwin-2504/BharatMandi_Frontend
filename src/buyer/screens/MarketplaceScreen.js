@@ -87,6 +87,7 @@ const MarketplaceScreen = ({ navigation }) => {
           renderItem={({ item }) => (
             <ProductItem 
               product={item} 
+              context="buyer"
               onPress={() => navigation.navigate("ProductDetail", { product: item })} 
             />
           )}

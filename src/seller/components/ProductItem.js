@@ -1,11 +1,29 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from '../../shared/theme/theme';
+import { COLORS, SPACING, SHADOWS, BORDER_RADIUS, FONT_SIZES, FONT_WEIGHTS } from '../../shared/theme/theme';
 
-const ProductItem = ({ product, onPress }) => {
+/**
+ * ProductItem with context-aware stock display.
+ * context: "seller" (default) shows exact count, "buyer" shows In/Low/Out badge.
+ */
+const ProductItem = ({ product, onPress, context = "seller" }) => {
+  const getStockDisplay = () => {
+    const qty = product.stock_quantity;
+    if (context === "buyer") {
+      if (qty <= 0) return { text: "Out of Stock", color: COLORS.error, bg: "#FFEBEE" };
+      if (qty < 10) return { text: "Low Stock", color: COLORS.warning, bg: "#FFF3E0" };
+      return { text: "In Stock", color: COLORS.success, bg: "#E8F5E9" };
+    }
+    // Seller — show exact count
+    if (qty < 5) return { text: `Stock: ${qty}`, color: COLORS.error, bg: "#FFEBEE" };
+    return { text: `Stock: ${qty}`, color: COLORS.textSecondary, bg: COLORS.background };
+  };
+
+  const stock = getStockDisplay();
+
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
+    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.imageContainer}>
         {product.image_url ? (
           <Image source={{ uri: product.image_url }} style={styles.image} />
@@ -20,9 +38,9 @@ const ProductItem = ({ product, onPress }) => {
         <Text style={styles.category}>{product.category}</Text>
         <View style={styles.footer}>
           <Text style={styles.price}>₹{product.price}</Text>
-          <View style={styles.stockBadge}>
-            <Text style={[styles.stockText, product.stock_quantity < 5 && styles.lowStock]}>
-              Stock: {product.stock_quantity}
+          <View style={[styles.stockBadge, { backgroundColor: stock.bg }]}>
+            <Text style={[styles.stockText, { color: stock.color }]}>
+              {stock.text}
             </Text>
           </View>
         </View>
@@ -64,12 +82,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: FONT_SIZES.md,
+    fontWeight: FONT_WEIGHTS.bold,
     color: COLORS.textPrimary,
   },
   category: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.xs,
     color: COLORS.textSecondary,
     marginTop: 2,
   },
@@ -80,23 +98,18 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   price: {
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.md,
+    fontWeight: FONT_WEIGHTS.heavy,
     color: COLORS.primary,
   },
   stockBadge: {
-    backgroundColor: COLORS.background,
-    paddingHorizontal: SPACING.xs,
-    paddingVertical: 2,
-    borderRadius: BORDER_RADIUS.sm,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 3,
+    borderRadius: BORDER_RADIUS.full,
   },
   stockText: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-  },
-  lowStock: {
-    color: '#FF4444',
-    fontWeight: '700',
+    fontSize: FONT_SIZES.xs,
+    fontWeight: FONT_WEIGHTS.semibold,
   },
 });
 

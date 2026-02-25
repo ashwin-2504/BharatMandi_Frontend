@@ -17,8 +17,10 @@ import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../../shared/theme/theme";
 import apiService from "../../shared/services/apiService";
+import { useAuth } from "../../shared/context/AuthContext";
 
 const AddProductScreen = ({ navigation }) => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -61,7 +63,7 @@ const AddProductScreen = ({ navigation }) => {
         ...formData,
         price: parseFloat(price),
         stock_quantity: parseInt(stock_quantity, 10),
-        seller_id: "seller_123", // Mock seller ID
+        seller_id: user?.id || "seller_123",
       };
 
       await apiService.addProduct(productPayload);

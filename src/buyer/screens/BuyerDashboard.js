@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../../shared/theme/theme";
 import StatsCard from "../../shared/components/StatsCard";
@@ -8,8 +8,10 @@ import { Feather } from "@expo/vector-icons";
 import OrderItem from "../../seller/components/OrderItem";
 import ProductItem from "../../seller/components/ProductItem";
 import apiService from "../../shared/services/apiService";
+import { useAuth } from "../../shared/context/AuthContext";
 
 const BuyerDashboard = ({ navigation }) => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
     purchases: "0",
@@ -29,7 +31,7 @@ const BuyerDashboard = ({ navigation }) => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const buyerId = "buyer_default";
+      const buyerId = user?.id || "buyer_default";
       const [statsData, ordersData, feedData] = await Promise.all([
         apiService.getBuyerStats(buyerId),
         apiService.getBuyerOrders(buyerId),
@@ -64,10 +66,17 @@ const BuyerDashboard = ({ navigation }) => {
         </View>
         <TouchableOpacity 
           style={styles.iconButton}
-          onPress={() => navigation.reset({
-            index: 0,
-            routes: [{ name: "Login" }],
-          })}
+          onPress={() => Alert.alert(
+            "Logout",
+            "Are you sure you want to logout?",
+            [
+              { text: "Cancel", style: "cancel" },
+              { text: "Logout", style: "destructive", onPress: () => navigation.reset({
+                index: 0,
+                routes: [{ name: "Login" }],
+              }) }
+            ]
+          )}
         >
           <Feather name="log-out" size={20} color={COLORS.textSecondary} />
         </TouchableOpacity>
@@ -82,6 +91,9 @@ const BuyerDashboard = ({ navigation }) => {
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={fetchDashboardData} />
+        }
       >
         <View style={styles.welcomeSection}>
           <View style={styles.welcomeHeader}>
@@ -96,10 +108,10 @@ const BuyerDashboard = ({ navigation }) => {
         </View>
 
         <View style={styles.statsGrid}>
-          <StatsCard title="Total Purchases" value={stats.purchases} icon="shopping-bag" />
-          <StatsCard title="Active Orders" value={stats.orders} icon="truck" />
-          <StatsCard title="Total Spent" value={stats.spent} icon="credit-card" />
-          <StatsCard title="Wishlist Items" value={stats.wishlist} icon="heart" />
+          <StatsCard title="Total Purchases" value={stats.purchases} icon="shopping-bag" color={{ bg: "#F3E5F5", icon: "#7B1FA2" }} />
+          <StatsCard title="Active Orders" value={stats.orders} icon="truck" color={{ bg: "#E3F2FD", icon: "#1565C0" }} />
+          <StatsCard title="Total Spent" value={stats.spent} icon="credit-card" color={{ bg: "#E8F5E9", icon: "#2E7D32" }} />
+          <StatsCard title="Wishlist Items" value={stats.wishlist} icon="heart" color={{ bg: "#FFEBEE", icon: "#C62828" }} />
         </View>
 
         <View style={styles.sectionHeader}>
@@ -126,6 +138,7 @@ const BuyerDashboard = ({ navigation }) => {
               <ProductItem 
                 key={product.id} 
                 product={product} 
+                context="buyer"
                 onPress={() => navigation.navigate("ProductDetail", { product })} 
               />
             ))}
@@ -146,7 +159,7 @@ const BuyerDashboard = ({ navigation }) => {
         ) : (
           <View style={styles.orderList}>
             {recentOrders.slice(0, 5).map(order => (
-              <OrderItem key={order.id} order={order} />
+              <OrderItem key={order.id} order={order} onPress={() => navigation.navigate("BuyerOrderDetail", { order })} />
             ))}
           </View>
         )}

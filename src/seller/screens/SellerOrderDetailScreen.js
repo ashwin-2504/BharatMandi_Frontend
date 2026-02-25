@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../../shared/theme/theme";
+import { COLORS, SPACING, SHADOWS, BORDER_RADIUS, STATUS_COLORS, FONT_SIZES, FONT_WEIGHTS } from "../../shared/theme/theme";
 import apiService from "../../shared/services/apiService";
 
 const STATUS_CHOICES = ["PENDING", "SHIPPED", "DELIVERED", "CANCELLED"];
@@ -41,13 +41,13 @@ const SellerOrderDetailScreen = ({ route, navigation }) => {
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'DELIVERED': return '#4CAF50';
-      case 'PENDING': return '#FF9800';
-      case 'SHIPPED': return '#2196F3';
-      case 'CANCELLED': return '#F44336';
-      default: return COLORS.textSecondary;
-    }
+    const sc = STATUS_COLORS[status];
+    return sc ? sc.text : COLORS.textSecondary;
+  };
+
+  const getStatusBg = (status) => {
+    const sc = STATUS_COLORS[status];
+    return sc ? sc.bg : COLORS.background;
   };
 
   return (
@@ -64,7 +64,7 @@ const SellerOrderDetailScreen = ({ route, navigation }) => {
         <View style={styles.card}>
           <View style={styles.orderHeader}>
             <Text style={styles.orderId}>Order #{order.id.substring(0, 8)}</Text>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) + '20' }]}>
+            <View style={[styles.statusBadge, { backgroundColor: getStatusBg(order.status) }]}>
               <Text style={[styles.statusText, { color: getStatusColor(order.status) }]}>{order.status}</Text>
             </View>
           </View>

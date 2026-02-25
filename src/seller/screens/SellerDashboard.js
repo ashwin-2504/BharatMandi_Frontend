@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
@@ -16,8 +17,10 @@ import { Feather } from "@expo/vector-icons";
 import apiService from "../../shared/services/apiService";
 import ProductItem from "../components/ProductItem";
 import OrderItem from "../components/OrderItem";
+import { useAuth } from "../../shared/context/AuthContext";
 
 const SellerDashboard = ({ navigation }) => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
     products: "0",
@@ -37,7 +40,7 @@ const SellerDashboard = ({ navigation }) => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const sellerId = "seller_123"; // Using mock ID
+      const sellerId = user?.id || "seller_123";
       
       // Fetch stats, products, and orders in parallel
       const [statsData, productsData, ordersData] = await Promise.all([
@@ -75,10 +78,17 @@ const SellerDashboard = ({ navigation }) => {
         </View>
         <TouchableOpacity 
           style={styles.iconButton}
-          onPress={() => navigation.reset({
-            index: 0,
-            routes: [{ name: "Login" }],
-          })}
+          onPress={() => Alert.alert(
+            "Logout",
+            "Are you sure you want to logout?",
+            [
+              { text: "Cancel", style: "cancel" },
+              { text: "Logout", style: "destructive", onPress: () => navigation.reset({
+                index: 0,
+                routes: [{ name: "Login" }],
+              }) }
+            ]
+          )}
         >
           <Feather name="log-out" size={20} color={COLORS.textSecondary} />
         </TouchableOpacity>
@@ -93,6 +103,9 @@ const SellerDashboard = ({ navigation }) => {
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={fetchDashboardData} />
+        }
       >
         <View style={styles.welcomeSection}>
           <View style={styles.welcomeHeader}>
@@ -107,10 +120,10 @@ const SellerDashboard = ({ navigation }) => {
         </View>
 
         <View style={styles.statsGrid}>
-          <StatsCard title="Active Products" value={stats.products} icon="box" />
-          <StatsCard title="Total Orders" value={stats.orders} icon="file-text" />
-          <StatsCard title="Total Revenue" value={stats.revenue} icon="pie-chart" />
-          <StatsCard title="Pending Orders" value={stats.pending} icon="clock" />
+          <StatsCard title="Active Products" value={stats.products} icon="box" color={{ bg: "#E8F5E9", icon: "#2E7D32" }} />
+          <StatsCard title="Total Orders" value={stats.orders} icon="file-text" color={{ bg: "#E3F2FD", icon: "#1565C0" }} />
+          <StatsCard title="Total Revenue" value={stats.revenue} icon="pie-chart" color={{ bg: "#FFF8E1", icon: "#F9A825" }} />
+          <StatsCard title="Pending Orders" value={stats.pending} icon="clock" color={{ bg: "#FFF3E0", icon: "#E65100" }} />
         </View>
 
         <View style={styles.sectionHeader}>

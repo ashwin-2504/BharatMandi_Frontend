@@ -13,9 +13,11 @@ import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../theme/theme";
 import PrimaryButton from "../components/PrimaryButton";
 import CustomInput from "../components/CustomInput";
 import RoleSelector from "../components/RoleSelector";
+import { useAuth } from "../context/AuthContext";
 
 const RegisterScreen = ({ navigation }) => {
   const [role, setRole] = useState("Farmer");
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -30,7 +32,12 @@ const RegisterScreen = ({ navigation }) => {
 
   const handleRegister = () => {
     console.log("Registering as", role, formData);
-    navigation.navigate("Dashboard");
+    login(role);
+    if (role === "Farmer") {
+      navigation.reset({ index: 0, routes: [{ name: "SellerDashboard" }] });
+    } else {
+      navigation.reset({ index: 0, routes: [{ name: "BuyerDashboard" }] });
+    }
   };
 
   return (
