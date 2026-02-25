@@ -81,7 +81,10 @@ const CheckoutScreen = ({ route, navigation }) => {
       
       if (result.success) {
         Alert.alert("Success", "Order placed successfully!", [
-          { text: "OK", onPress: () => navigation.navigate("BuyerDashboard") }
+          { text: "OK", onPress: () => navigation.reset({
+            index: 0,
+            routes: [{ name: "BuyerDashboard" }],
+          }) }
         ]);
       } else {
         throw new Error("Confirmation failed");
