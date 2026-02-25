@@ -3,12 +3,44 @@
  * Handles communication with the Express/Vercel backend
  */
 
-// Use Expo environment variables for the backend URL
-// This value is defined in the .env file
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 if (!BASE_URL) {
   console.warn("Warning: EXPO_PUBLIC_API_URL is not defined in .env");
+}
+
+/**
+ * Validates a fetch response & parsed JSON body.
+ * Throws an informative Error when the server returns a non-OK status
+ * or when the JSON body contains `{ success: false }`.
+ */
+async function _handleResponse(response, context) {
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    // Body wasn't JSON — still treat as an error if status is bad
+    if (!response.ok) {
+      throw new Error(
+        `[${context}] Server returned ${response.status} ${response.statusText}`
+      );
+    }
+    return {};
+  }
+
+  if (!response.ok) {
+    const serverMsg =
+      data?.message || data?.error || JSON.stringify(data);
+    throw new Error(`[${context}] ${response.status}: ${serverMsg}`);
+  }
+
+  if (data.success === false) {
+    const serverMsg =
+      data?.message || data?.error || "Unknown server error";
+    throw new Error(`[${context}] ${serverMsg}`);
+  }
+
+  return data;
 }
 
 const apiService = {
@@ -18,9 +50,27 @@ const apiService = {
   async checkHealth() {
     try {
       const response = await fetch(`${BASE_URL}/health`);
-      return await response.json();
+      return await _handleResponse(response, "checkHealth");
     } catch (error) {
       console.error("API Error (checkHealth):", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Create a new checkout flow.
+   * The backend owns session & flow creation — the app never generates these IDs.
+   */
+  async createFlow(usecaseId) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/checkout/create-flow`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usecaseId }),
+      });
+      return await _handleResponse(response, "createFlow");
+    } catch (error) {
+      console.error("API Error (createFlow):", error);
       throw error;
     }
   },
@@ -35,7 +85,7 @@ const apiService = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId, flowId }),
       });
-      return await response.json();
+      return await _handleResponse(response, "search");
     } catch (error) {
       console.error("API Error (search):", error);
       throw error;
@@ -52,7 +102,7 @@ const apiService = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ transactionId, inputs }),
       });
-      return await response.json();
+      return await _handleResponse(response, "select");
     } catch (error) {
       console.error("API Error (select):", error);
       throw error;
@@ -69,7 +119,7 @@ const apiService = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ transactionId, inputs }),
       });
-      return await response.json();
+      return await _handleResponse(response, "init");
     } catch (error) {
       console.error("API Error (init):", error);
       throw error;
@@ -86,7 +136,7 @@ const apiService = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ transactionId, inputs }),
       });
-      return await response.json();
+      return await _handleResponse(response, "confirm");
     } catch (error) {
       console.error("API Error (confirm):", error);
       throw error;
@@ -99,7 +149,7 @@ const apiService = {
   async getStatus(transactionId) {
     try {
       const response = await fetch(`${BASE_URL}/api/status/${transactionId}`);
-      return await response.json();
+      return await _handleResponse(response, "getStatus");
     } catch (error) {
       console.error("API Error (getStatus):", error);
       throw error;
@@ -116,7 +166,7 @@ const apiService = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(productData),
       });
-      return await response.json();
+      return await _handleResponse(response, "addProduct");
     } catch (error) {
       console.error("API Error (addProduct):", error);
       throw error;
@@ -129,7 +179,7 @@ const apiService = {
   async getSellerProducts(sellerId) {
     try {
       const response = await fetch(`${BASE_URL}/api/products/seller/${sellerId}`);
-      return await response.json();
+      return await _handleResponse(response, "getSellerProducts");
     } catch (error) {
       console.error("API Error (getSellerProducts):", error);
       throw error;
@@ -142,7 +192,7 @@ const apiService = {
   async searchProducts(query) {
     try {
       const response = await fetch(`${BASE_URL}/api/products/search?q=${encodeURIComponent(query)}`);
-      return await response.json();
+      return await _handleResponse(response, "searchProducts");
     } catch (error) {
       console.error("API Error (searchProducts):", error);
       throw error;
@@ -155,7 +205,7 @@ const apiService = {
   async getAllProducts() {
     try {
       const response = await fetch(`${BASE_URL}/api/products`);
-      return await response.json();
+      return await _handleResponse(response, "getAllProducts");
     } catch (error) {
       console.error("API Error (getAllProducts):", error);
       throw error;
@@ -168,7 +218,7 @@ const apiService = {
   async getProductFeed(limit = 10) {
     try {
       const response = await fetch(`${BASE_URL}/api/products/feed?limit=${limit}`);
-      return await response.json();
+      return await _handleResponse(response, "getProductFeed");
     } catch (error) {
       console.error("API Error (getProductFeed):", error);
       throw error;
@@ -181,7 +231,7 @@ const apiService = {
   async getSellerOrders(sellerId) {
     try {
       const response = await fetch(`${BASE_URL}/api/orders/seller/${sellerId}`);
-      return await response.json();
+      return await _handleResponse(response, "getSellerOrders");
     } catch (error) {
       console.error("API Error (getSellerOrders):", error);
       throw error;
@@ -194,7 +244,7 @@ const apiService = {
   async getSellerStats(sellerId) {
     try {
       const response = await fetch(`${BASE_URL}/api/stats/seller/${sellerId}`);
-      return await response.json();
+      return await _handleResponse(response, "getSellerStats");
     } catch (error) {
       console.error("API Error (getSellerStats):", error);
       throw error;
@@ -213,7 +263,7 @@ const apiService = {
         },
         body: JSON.stringify({ status }),
       });
-      return await response.json();
+      return await _handleResponse(response, "updateOrderStatus");
     } catch (error) {
       console.error("API Error (updateOrderStatus):", error);
       throw error;

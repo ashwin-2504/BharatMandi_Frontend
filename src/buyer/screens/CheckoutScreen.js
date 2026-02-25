@@ -12,36 +12,55 @@ const CheckoutScreen = ({ route, navigation }) => {
   const [step, setStep] = useState(1); // 1: Select, 2: Init, 3: Confirm
   const [loading, setLoading] = useState(false);
   const [transactionId, setTransactionId] = useState(null);
+  const [sessionId, setSessionId] = useState(null);
+  const [flowId, setFlowId] = useState(null);
+  const [flowReady, setFlowReady] = useState(false);
   const [shippingInfo, setShippingInfo] = useState({
     name: "John Doe",
     address: "123 Farmer St, Agriville",
     phone: "9876543210",
   });
 
-  // Dynamically generated flow details instead of hardcoded
-  const [sessionId] = useState("session_" + Math.random().toString(36).substring(2, 10));
-  const [flowId] = useState("agricultural_flow_" + Date.now());
+  // On mount: let the backend create a session & flow
+  useEffect(() => {
+    let cancelled = false;
+    const initFlow = async () => {
+      setLoading(true);
+      try {
+        const result = await apiService.createFlow("agricultural_flow_1");
+        if (cancelled) return;
+        setSessionId(result.data.sessionId);
+        setFlowId(result.data.flowId);
+        setTransactionId(result.data.transactionId);
+        setFlowReady(true);
+      } catch (error) {
+        if (cancelled) return;
+        Alert.alert("Connection Error", "Could not initialize checkout: " + error.message, [
+          { text: "Go Back", onPress: () => navigation.goBack() },
+        ]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    initFlow();
+    return () => { cancelled = true; };
+  }, []);
 
   // Step 1: Select
   const handleSelect = async () => {
+    if (!transactionId) {
+      Alert.alert("Error", "Transaction not ready. Please wait or restart checkout.");
+      return;
+    }
     setLoading(true);
     try {
-      const result = await apiService.search(sessionId, flowId);
-      if (result.success && result.data.transactionId) {
-        setTransactionId(result.data.transactionId);
-        
-        // Advance to next step simulation (Proceed select)
-        await apiService.select(result.data.transactionId, { 
-          item_id: product.id,
-          quantity: product.quantity 
-        });
-        
-        setStep(2);
-      } else {
-        throw new Error("Failed to start transaction");
-      }
+      await apiService.select(transactionId, { 
+        item_id: product.id,
+        quantity: product.quantity 
+      });
+      setStep(2);
     } catch (error) {
-      Alert.alert("Error", "Failed to initiate select: " + error.message);
+      Alert.alert("Error", "Failed to select item: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -49,6 +68,10 @@ const CheckoutScreen = ({ route, navigation }) => {
 
   // Step 2: Init
   const handleInit = async () => {
+    if (!transactionId) {
+      Alert.alert("Error", "Transaction ID is missing. Cannot initialize order.");
+      return;
+    }
     setLoading(true);
     try {
       await apiService.init(transactionId, { 
@@ -65,33 +88,29 @@ const CheckoutScreen = ({ route, navigation }) => {
 
   // Step 3: Confirm
   const handleConfirm = async () => {
+    if (!transactionId) {
+      Alert.alert("Error", "Transaction ID is missing. Cannot confirm order.");
+      return;
+    }
     setLoading(true);
     try {
-      // In a real ONDC flow, 'confirm' is the final stage. 
-      // Our backend is updated to record the order in DB on this call.
       const payload = {
-        transactionId,
-        inputs: {
-          customer_name: shippingInfo.name,
-          total_amount: product.price * product.quantity,
-          seller_id: product.seller_id,
-          items: [{ id: product.id, name: product.name, price: product.price, quantity: product.quantity }],
-          payment: { type: "COD", status: "PENDING" }
-        }
+        customer_name: shippingInfo.name,
+        total_amount: product.price * product.quantity,
+        seller_id: product.seller_id,
+        buyer_id: "buyer_default",
+        items: [{ id: product.id, name: product.name, price: product.price, quantity: product.quantity }],
+        payment: { type: "COD", status: "PENDING" }
       };
       
-      const result = await apiService.confirm(payload.transactionId, payload.inputs);
+      const result = await apiService.confirm(transactionId, payload);
       
-      if (result.success) {
-        Alert.alert("Success", "Order placed successfully!", [
-          { text: "OK", onPress: () => navigation.reset({
-            index: 0,
-            routes: [{ name: "BuyerDashboard" }],
-          }) }
-        ]);
-      } else {
-        throw new Error("Confirmation failed");
-      }
+      Alert.alert("Success", "Order placed successfully!", [
+        { text: "OK", onPress: () => navigation.reset({
+          index: 0,
+          routes: [{ name: "BuyerDashboard" }],
+        }) }
+      ]);
     } catch (error) {
       Alert.alert("Error", "Failed to confirm order: " + error.message);
     } finally {
