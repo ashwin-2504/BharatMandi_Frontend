@@ -61,7 +61,10 @@ const BuyerDashboard = ({ navigation }) => {
         </View>
         <TouchableOpacity 
           style={styles.iconButton}
-          onPress={() => navigation.navigate("Login")}
+          onPress={() => navigation.reset({
+            index: 0,
+            routes: [{ name: "Login" }],
+          })}
         >
           <Feather name="log-out" size={20} color={COLORS.textSecondary} />
         </TouchableOpacity>

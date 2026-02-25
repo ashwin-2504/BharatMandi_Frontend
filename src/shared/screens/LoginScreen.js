@@ -20,9 +20,9 @@ const LoginScreen = ({ navigation }) => {
     // Navigate to Dashboard with selected role
     console.log("Entering dashboard as", role);
     if (role === "Farmer") {
-      navigation.navigate("SellerDashboard");
+      navigation.reset({ index: 0, routes: [{ name: "SellerDashboard" }] });
     } else {
-      navigation.navigate("BuyerDashboard");
+      navigation.reset({ index: 0, routes: [{ name: "BuyerDashboard" }] });
     }
   };
 
