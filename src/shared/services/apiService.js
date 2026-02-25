@@ -239,6 +239,32 @@ const apiService = {
   },
 
   /**
+   * Get orders for a specific buyer
+   */
+  async getBuyerOrders(buyerId) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/orders/buyer/${buyerId}`);
+      return await _handleResponse(response, "getBuyerOrders");
+    } catch (error) {
+      console.error("API Error (getBuyerOrders):", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get statistics for a specific buyer
+   */
+  async getBuyerStats(buyerId) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/stats/buyer/${buyerId}`);
+      return await _handleResponse(response, "getBuyerStats");
+    } catch (error) {
+      console.error("API Error (getBuyerStats):", error);
+      throw error;
+    }
+  },
+
+  /**
    * Get statistics for a specific seller
    */
   async getSellerStats(sellerId) {

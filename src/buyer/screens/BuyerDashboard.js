@@ -29,11 +29,10 @@ const BuyerDashboard = ({ navigation }) => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      // Mock buyer ID for stats
-      const buyerId = "seller_123"; // Reusing for now to show data
+      const buyerId = "buyer_default";
       const [statsData, ordersData, feedData] = await Promise.all([
-        apiService.getSellerStats(buyerId),
-        apiService.getSellerOrders(buyerId),
+        apiService.getBuyerStats(buyerId),
+        apiService.getBuyerOrders(buyerId),
         apiService.getProductFeed(5)
       ]);
       
