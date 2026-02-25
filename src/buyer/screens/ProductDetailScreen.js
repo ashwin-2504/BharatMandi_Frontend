@@ -8,15 +8,16 @@ import { useCart } from "../../shared/context/CartContext";
 const ProductDetailScreen = ({ route, navigation }) => {
   const { product } = route.params;
   const { addToCart, cartCount } = useCart();
+  const [quantity, setQuantity] = useState(1);
 
   const handleBuyNow = () => {
     // Navigate to checkout with product info directly
-    navigation.navigate("Checkout", { product: { ...product, quantity: 1, checkoutTotal: product.price } });
+    navigation.navigate("Checkout", { product: { ...product, quantity, checkoutTotal: product.price * quantity } });
   };
 
   const handleAddToCart = () => {
-    addToCart(product);
-    Alert.alert("Added to Cart", `${product.name} has been added to your cart.`);
+    addToCart(product, quantity);
+    Alert.alert("Added to Cart", `${quantity} × ${product.name} added to your cart.`);
   };
 
   return (
@@ -57,6 +58,25 @@ const ProductDetailScreen = ({ route, navigation }) => {
             </View>
             <View style={styles.priceBadge}>
               <Text style={styles.price}>₹{product.price}</Text>
+            </View>
+          </View>
+
+          <View style={styles.quantitySection}>
+            <Text style={styles.quantityLabel}>Quantity:</Text>
+            <View style={styles.quantityControls}>
+              <TouchableOpacity 
+                style={styles.qtyBtn} 
+                onPress={() => setQuantity(Math.max(1, quantity - 1))}
+              >
+                <Feather name="minus" size={20} color={COLORS.textPrimary} />
+              </TouchableOpacity>
+              <Text style={styles.qtyText}>{quantity}</Text>
+              <TouchableOpacity 
+                style={styles.qtyBtn} 
+                onPress={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
+              >
+                <Feather name="plus" size={20} color={COLORS.textPrimary} />
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -166,15 +186,48 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   priceBadge: {
-    backgroundColor: COLORS.primary + "15",
+    backgroundColor: COLORS.primaryLight,
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.md,
+    paddingVertical: SPACING.xs,
+    borderRadius: BORDER_RADIUS.full,
   },
   price: {
-    fontSize: 20,
-    fontWeight: "800",
+    fontSize: FONT_SIZES.xl,
+    fontWeight: FONT_WEIGHTS.heavy,
     color: COLORS.primary,
+  },
+  quantitySection: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: SPACING.lg,
+    backgroundColor: COLORS.surface,
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+  },
+  quantityLabel: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: FONT_WEIGHTS.semibold,
+    color: COLORS.textPrimary,
+  },
+  quantityControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  qtyBtn: {
+    padding: SPACING.sm,
+    width: 40,
+    alignItems: "center",
+  },
+  qtyText: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: FONT_WEIGHTS.bold,
+    minWidth: 30,
+    textAlign: "center",
   },
   infoGrid: {
     flexDirection: "row",

@@ -270,7 +270,7 @@ const CheckoutScreen = ({ route, navigation }) => {
               <Text style={styles.confirmLabel}>Items:</Text>
               <Text style={styles.confirmValue}>{items.length} item(s)</Text>
             </View>
-            <Text style={styles.warningText}>By clicking confirm, your order will be placed using ONDC protocol.</Text>
+            <Text style={styles.warningText}>Please verify your details before placing the order.</Text>
           </View>
         )}
       </ScrollView>
