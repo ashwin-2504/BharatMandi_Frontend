@@ -6,6 +6,7 @@ import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../../shared/theme/them
 import StatsCard from "../../shared/components/StatsCard";
 import { Feather } from "@expo/vector-icons";
 import OrderItem from "../../seller/components/OrderItem";
+import ProductItem from "../../seller/components/ProductItem";
 import apiService from "../../shared/services/apiService";
 
 const BuyerDashboard = ({ navigation }) => {
@@ -17,6 +18,7 @@ const BuyerDashboard = ({ navigation }) => {
     wishlist: "0",
   });
   const [recentOrders, setRecentOrders] = useState([]);
+  const [feed, setFeed] = useState([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -29,9 +31,10 @@ const BuyerDashboard = ({ navigation }) => {
     try {
       // Mock buyer ID for stats
       const buyerId = "seller_123"; // Reusing for now to show data
-      const [statsData, ordersData] = await Promise.all([
+      const [statsData, ordersData, feedData] = await Promise.all([
         apiService.getSellerStats(buyerId),
-        apiService.getSellerOrders(buyerId)
+        apiService.getSellerOrders(buyerId),
+        apiService.getProductFeed(5)
       ]);
       
       setStats({
@@ -41,6 +44,7 @@ const BuyerDashboard = ({ navigation }) => {
         wishlist: "0",
       });
       setRecentOrders(ordersData);
+      setFeed(feedData);
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
     } finally {
@@ -102,7 +106,7 @@ const BuyerDashboard = ({ navigation }) => {
         <View style={styles.sectionHeader}>
           <View style={styles.titleWithIcon}>
             <Feather name="award" size={18} color={COLORS.primary} style={styles.sectionIcon} />
-            <Text style={styles.sectionTitle}>Marketplace</Text>
+            <Text style={styles.sectionTitle}>Recommended For You</Text>
           </View>
           <TouchableOpacity 
             style={styles.addButton}
@@ -113,9 +117,21 @@ const BuyerDashboard = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>Discover fresh produce directly from farmers!</Text>
-        </View>
+        {feed.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>Discover fresh produce directly from farmers!</Text>
+          </View>
+        ) : (
+          <View style={styles.feedList}>
+            {feed.map(product => (
+              <ProductItem 
+                key={product.id} 
+                product={product} 
+                onPress={() => navigation.navigate("ProductDetail", { product })} 
+              />
+            ))}
+          </View>
+        )}
 
         <View style={styles.sectionHeader}>
           <View style={styles.titleWithIcon}>
@@ -267,6 +283,9 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 14,
     textAlign: "center",
+  },
+  feedList: {
+    marginBottom: SPACING.lg,
   },
 });
 

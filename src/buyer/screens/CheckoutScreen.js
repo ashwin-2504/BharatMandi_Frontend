@@ -6,7 +6,9 @@ import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../../shared/theme/them
 import apiService from "../../shared/services/apiService";
 
 const CheckoutScreen = ({ route, navigation }) => {
-  const { product } = route.params;
+  const { product: initialProduct } = route.params;
+  const [product, setProduct] = useState({ ...initialProduct, quantity: initialProduct.quantity || 1 });
+  
   const [step, setStep] = useState(1); // 1: Select, 2: Init, 3: Confirm
   const [loading, setLoading] = useState(false);
   const [transactionId, setTransactionId] = useState(null);
@@ -16,8 +18,9 @@ const CheckoutScreen = ({ route, navigation }) => {
     phone: "9876543210",
   });
 
-  const sessionId = "session_" + Date.now();
-  const flowId = "agricultural_flow_1";
+  // Dynamically generated flow details instead of hardcoded
+  const [sessionId] = useState("session_" + Math.random().toString(36).substring(2, 10));
+  const [flowId] = useState("agricultural_flow_" + Date.now());
 
   // Step 1: Select
   const handleSelect = async () => {
@@ -30,7 +33,7 @@ const CheckoutScreen = ({ route, navigation }) => {
         // Advance to next step simulation (Proceed select)
         await apiService.select(result.data.transactionId, { 
           item_id: product.id,
-          quantity: 1 
+          quantity: product.quantity 
         });
         
         setStep(2);
@@ -70,9 +73,9 @@ const CheckoutScreen = ({ route, navigation }) => {
         transactionId,
         inputs: {
           customer_name: shippingInfo.name,
-          total_amount: product.price,
+          total_amount: product.price * product.quantity,
           seller_id: product.seller_id,
-          items: [{ id: product.id, name: product.name, price: product.price }],
+          items: [{ id: product.id, name: product.name, price: product.price, quantity: product.quantity }],
           payment: { type: "COD", status: "PENDING" }
         }
       };
@@ -147,13 +150,29 @@ const CheckoutScreen = ({ route, navigation }) => {
                 <Text style={styles.itemName}>{product.name}</Text>
                 <Text style={styles.itemCategory}>{product.category}</Text>
                 <Text style={styles.itemPrice}>₹{product.price}</Text>
+
+                <View style={styles.quantityControls}>
+                  <TouchableOpacity 
+                    style={styles.controlBtn}
+                    onPress={() => setProduct({...product, quantity: Math.max(1, product.quantity - 1)})}
+                  >
+                    <Feather name="minus" size={16} color={COLORS.textPrimary} />
+                  </TouchableOpacity>
+                  <Text style={styles.quantityText}>{product.quantity}</Text>
+                  <TouchableOpacity 
+                    style={styles.controlBtn}
+                    onPress={() => setProduct({...product, quantity: product.quantity + 1})}
+                  >
+                    <Feather name="plus" size={16} color={COLORS.textPrimary} />
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
             
             <View style={styles.summaryContainer}>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Subtotal</Text>
-                <Text style={styles.summaryValue}>₹{product.price}</Text>
+                <Text style={styles.summaryValue}>₹{product.price * product.quantity}</Text>
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Delivery</Text>
@@ -161,7 +180,7 @@ const CheckoutScreen = ({ route, navigation }) => {
               </View>
               <View style={[styles.summaryRow, styles.totalRow]}>
                 <Text style={styles.totalLabel}>Total</Text>
-                <Text style={styles.totalValue}>₹{product.price}</Text>
+                <Text style={styles.totalValue}>₹{product.price * product.quantity}</Text>
               </View>
             </View>
           </View>
@@ -208,7 +227,7 @@ const CheckoutScreen = ({ route, navigation }) => {
             </View>
             <View style={styles.confirmationRow}>
               <Text style={styles.confirmLabel}>Total Amount:</Text>
-              <Text style={styles.confirmTotal}>₹{product.price}</Text>
+              <Text style={styles.confirmTotal}>₹{product.price * product.quantity}</Text>
             </View>
             <View style={styles.confirmationRow}>
               <Text style={styles.confirmLabel}>Delivery to:</Text>
@@ -385,6 +404,26 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "800",
     color: COLORS.primary,
+  },
+  quantityControls: { 
+    flexDirection: "row", 
+    alignItems: "center",
+    marginTop: SPACING.sm,
+  },
+  controlBtn: { 
+    width: 28, 
+    height: 28, 
+    borderRadius: 14, 
+    backgroundColor: COLORS.background, 
+    justifyContent: "center", 
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  quantityText: { 
+    marginHorizontal: SPACING.md, 
+    fontSize: 14, 
+    fontWeight: "700",
   },
   inputGroup: {
     marginBottom: SPACING.md,

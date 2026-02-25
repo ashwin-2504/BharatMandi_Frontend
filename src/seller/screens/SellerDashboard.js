@@ -139,7 +139,10 @@ const SellerDashboard = ({ navigation }) => {
               <ProductItem key={product.id} product={product} />
             ))}
             {products.length > 5 && (
-              <TouchableOpacity style={styles.viewMoreButton}>
+              <TouchableOpacity 
+                style={styles.viewMoreButton}
+                onPress={() => navigation.navigate("SellerProducts")}
+              >
                 <Text style={styles.viewMoreText}>View All Products</Text>
               </TouchableOpacity>
             )}
@@ -162,10 +165,17 @@ const SellerDashboard = ({ navigation }) => {
         ) : (
           <View style={styles.orderList}>
             {orders.slice(0, 5).map(order => (
-              <OrderItem key={order.id} order={order} />
+              <OrderItem 
+                key={order.id} 
+                order={order} 
+                onPress={() => navigation.navigate("SellerOrderDetail", { order })}
+              />
             ))}
             {orders.length > 5 && (
-              <TouchableOpacity style={styles.viewMoreButton}>
+              <TouchableOpacity 
+                style={styles.viewMoreButton}
+                onPress={() => navigation.navigate("SellerOrders")}
+              >
                 <Text style={styles.viewMoreText}>View All Orders</Text>
               </TouchableOpacity>
             )}

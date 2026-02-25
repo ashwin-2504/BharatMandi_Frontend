@@ -163,6 +163,19 @@ const apiService = {
   },
 
   /**
+   * Get product feed
+   */
+  async getProductFeed(limit = 10) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/products/feed?limit=${limit}`);
+      return await response.json();
+    } catch (error) {
+      console.error("API Error (getProductFeed):", error);
+      throw error;
+    }
+  },
+
+  /**
    * Get orders for a specific seller
    */
   async getSellerOrders(sellerId) {
@@ -184,6 +197,25 @@ const apiService = {
       return await response.json();
     } catch (error) {
       console.error("API Error (getSellerStats):", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update order status
+   */
+  async updateOrderStatus(orderId, status) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/orders/${orderId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
+      });
+      return await response.json();
+    } catch (error) {
+      console.error("API Error (updateOrderStatus):", error);
       throw error;
     }
   },

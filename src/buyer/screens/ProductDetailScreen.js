@@ -3,13 +3,19 @@ import { StyleSheet, View, Text, Image, ScrollView, TouchableOpacity } from "rea
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../../shared/theme/theme";
+import { useCart } from "../../shared/context/CartContext";
 
 const ProductDetailScreen = ({ route, navigation }) => {
   const { product } = route.params;
+  const { addToCart, cartCount } = useCart();
 
   const handleBuyNow = () => {
-    // Navigate to checkout with product info
-    navigation.navigate("Checkout", { product });
+    // Navigate to checkout with product info directly
+    navigation.navigate("Checkout", { product: { ...product, quantity: 1, checkoutTotal: product.price } });
+  };
+
+  const handleAddToCart = () => {
+    addToCart(product);
   };
 
   return (
@@ -19,8 +25,15 @@ const ProductDetailScreen = ({ route, navigation }) => {
           <Feather name="arrow-left" size={24} color={COLORS.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Product Details</Text>
-        <TouchableOpacity style={styles.cartButton}>
-          <Feather name="shopping-cart" size={22} color={COLORS.textPrimary} />
+        <TouchableOpacity style={styles.cartButton} onPress={() => navigation.navigate("Cart")}>
+          <View>
+            <Feather name="shopping-cart" size={22} color={COLORS.textPrimary} />
+            {cartCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{cartCount}</Text>
+              </View>
+            )}
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -51,7 +64,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
               <Feather name="box" size={18} color={COLORS.primary} />
               <View style={styles.infoTextContainer}>
                 <Text style={styles.infoLabel}>Stock Status</Text>
-                <Text style={[styles.infoValue, product.stock_quantity < 5 && styles.lowStock]}>
+                <Text style={[styles.infoValue, product.stock_quantity < 10 && styles.lowStock]}>
                   {product.stock_quantity} available
                 </Text>
               </View>
@@ -75,8 +88,8 @@ const ProductDetailScreen = ({ route, navigation }) => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.wishlistButton}>
-          <Feather name="heart" size={24} color={COLORS.primary} />
+        <TouchableOpacity style={styles.wishlistButton} onPress={handleAddToCart}>
+          <Feather name="shopping-cart" size={24} color={COLORS.primary} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.buyButton} onPress={handleBuyNow}>
           <Text style={styles.buyButtonText}>Buy Now</Text>
@@ -218,7 +231,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   wishlistButton: {
-    width: 50,
+    width: 60,
     height: 50,
     borderRadius: BORDER_RADIUS.md,
     borderWidth: 1,
@@ -226,6 +239,25 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: SPACING.md,
+  },
+  badge: {
+    position: "absolute",
+    top: -8,
+    right: -8,
+    backgroundColor: COLORS.primary,
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: COLORS.white,
+  },
+  badgeText: {
+    color: COLORS.white,
+    fontSize: 10,
+    fontWeight: "bold",
+    paddingHorizontal: 4,
   },
   buyButton: {
     flex: 1,

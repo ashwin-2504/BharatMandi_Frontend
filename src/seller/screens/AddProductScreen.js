@@ -10,9 +10,11 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from "../../shared/theme/theme";
 import apiService from "../../shared/services/apiService";
 
@@ -29,6 +31,19 @@ const AddProductScreen = ({ navigation }) => {
 
   const handleChange = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      handleChange("image_url", result.assets[0].uri);
+    }
   };
 
   const handleSubmit = async () => {
@@ -132,13 +147,17 @@ const AddProductScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Image URL</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="https://example.com/image.jpg"
-              value={formData.image_url}
-              onChangeText={(text) => handleChange("image_url", text)}
-            />
+            <Text style={styles.label}>Product Image</Text>
+            <TouchableOpacity style={styles.imagePickerContainer} onPress={pickImage}>
+              {formData.image_url ? (
+                <Image source={{ uri: formData.image_url }} style={styles.previewImage} />
+              ) : (
+                <View style={styles.imagePlaceholder}>
+                  <Feather name="camera" size={32} color={COLORS.textSecondary} />
+                  <Text style={styles.imagePlaceholderText}>Tap to select an image</Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
 
           <TouchableOpacity
@@ -225,6 +244,31 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 18,
     fontWeight: "700",
+  },
+  imagePickerContainer: {
+    width: "100%",
+    height: 200,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: BORDER_RADIUS.md,
+    borderStyle: "dashed",
+    overflow: "hidden",
+  },
+  previewImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  imagePlaceholder: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imagePlaceholderText: {
+    marginTop: SPACING.sm,
+    color: COLORS.textSecondary,
+    fontSize: 14,
   },
 });
 
